@@ -27,25 +27,31 @@ interface K1 extends interfaces A, B, and C
 interface K2 extends interfaces D, B, and E
 interface K3 extends interfaces D, and A
 ```
-
+<img src="https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2022.53.35.png?raw=true" width="300px" />
 
 
 The calculated method resolution order for Z looks like that:
 So it is visible that the concepts are called first, and then the interfaces. For the interfaces, the same order as in the [wikipedia example](https://en.wikipedia.org/wiki/C3_linearization#Example_demonstrated_in_Python_3) comes out: Direct parents are visited first, then their parents are visited, while trying to satisfy the relative orders in all the lists. In our case, B is visited before C to satisfy the relative order in K1; and B is also visited before E to satisfy the order of K2. Since this holds transitively, D also has to be before B, since K3 wants D before A and K1 wants A before B.
 BaseConcept seems to play a special role here, as it is artificially moved to the end.
 
+![](https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2022.57.58.png?raw=true)
 
 
 
 To verify this order, I added a method to the BaseInterface that tells its name. All inheritors override this method and implement it by calling super, prepend their own name to it and returning the result. 
 
+![](https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2022.58.30.png?raw=true)
+![](https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2023.00.06.png?raw=true)
 
 
 
 When calling this method on Z, there is not much to see. As only the first method of multiple possibilities is called, we can see the extension relationship and at the very last the interface method itself got called. BaseConcept is not listed here, as it doesn’t implement this method.
+![](https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2022.59.39.png?raw=true)
 
 
-To see the method call bubble through interface inheritance, I removed the superclass of Z. We can see that from each concept’s list of implemented interfaces, the first entry was taken.
+To see the method call bubble through interface inheritance, I removed the superclass of Z. We can see that from each concept’s list of implemented interfaces, the first entry was taken. Here's the result:
+![](https://github.com/abstraktor/MPS_MROTest/blob/master/figures/Bildschirmfoto%202019-03-28%20um%2022.59.31.png?raw=true)
+
 
 # Further Details
 
