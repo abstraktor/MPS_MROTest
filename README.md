@@ -1,2 +1,56 @@
-# MPS_MROTest
-A project that tests the method resolution order in MPS
+# Background
+An MPS concept can extend one other concept and implement multiple interfaces. An interface may extend multiple other interfaces. Both, concepts and interfaces may contain methods.
+
+First of all, method calls reference the target method by id, so name collisions are resolved at the time when typing the method call, when the programmer decides between one or the other method. This can also be verified by Ctrl+Clicking the reference and seeing to which method MPS navigates. This also implies that a method name can be changed when overriding it, since the “overriding” characteristic similarly is matched based on both methods sharing their method id. To be clear on what we refer to, let’s call the base method and all its overriding methods the “method family”, and when referring to one particular implementation of a base or overriding method, we’ll be speaking about the “implementation”.
+
+Note that the class name next to “overrides” just tells us where the base method is implemented. So this is not a datum that we can change to influence which method implementation will be executed. If A extends O, which extends BaseConcept, and all of them implement getPresentation, then the getPresentation implementation of A will show “overrides BaseConcept.getPresentation”, even though there is the O implementation of getPresentation in between.
+
+Since interfaces may override methods, it’s still unclear what method will be called when two interfaces A and B override a method from a shared superinterface.
+
+# TLDR
+Considering only interfaces, the method resolution order is the C3 linearization order that is also used in Python 2 and 3.
+
+# Example Setup
+This example bases on the [C3 linearization algorithm example on wikipedia](https://en.wikipedia.org/wiki/C3_linearization#Example_demonstrated_in_Python_3)
+
+```
+concept Z extends Z_Super and implements interfaces K1, K2, and K3
+concept Z_Super extends Z_SuperSuper and implements BaseInterface
+concept Z_SuperSuper extends BaseConcept and implements BaseInterface
+interface A extends interface O
+interface B extends interface O
+interface C extends interface O
+interface D extends interface O
+interface E extends interface O
+interface O extends interface BaseInterface
+interface K1 extends interfaces A, B, and C
+interface K2 extends interfaces D, B, and E
+interface K3 extends interfaces D, and A
+```
+
+
+
+The calculated method resolution order for Z looks like that:
+So it is visible that the concepts are called first, and then the interfaces. For the interfaces, the same order as in the [wikipedia example](https://en.wikipedia.org/wiki/C3_linearization#Example_demonstrated_in_Python_3) comes out: Direct parents are visited first, then their parents are visited, while trying to satisfy the relative orders in all the lists. In our case, B is visited before C to satisfy the relative order in K1; and B is also visited before E to satisfy the order of K2. Since this holds transitively, D also has to be before B, since K3 wants D before A and K1 wants A before B.
+BaseConcept seems to play a special role here, as it is artificially moved to the end.
+
+
+
+
+To verify this order, I added a method to the BaseInterface that tells its name. All inheritors override this method and implement it by calling super, prepend their own name to it and returning the result. 
+
+
+
+
+When calling this method on Z, there is not much to see. As only the first method of multiple possibilities is called, we can see the extension relationship and at the very last the interface method itself got called. BaseConcept is not listed here, as it doesn’t implement this method.
+
+
+To see the method call bubble through interface inheritance, I removed the superclass of Z. We can see that from each concept’s list of implemented interfaces, the first entry was taken.
+
+# Further Details
+
+An interface may override a method of a concept, simply by implementing a method with the same id. This is a weird thing though…
+
+The original paper that introduced the C3 algorithm (they built it for Dylan) can be found [here](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.19.3910&rep=rep1&type=pdf).
+
+The C3 is in MPS implemented in [AbstractC3StarMethodResolutionOrder.java](https://github.com/JetBrains/MPS/blob/master/core/aspects/behavior/behavior-api/source/jetbrains/mps/core/aspects/behaviour/AbstractC3StarMethodResolutionOrder.java). The core dispatch of behavior methods is implemented in the [BaseBHDescriptor.java](https://github.com/JetBrains/MPS/blob/master/core/aspects/behavior/behavior-runtime/source/jetbrains/mps/core/aspects/behaviour/BaseBHDescriptor.java).
