@@ -82,3 +82,5 @@ An interface may override a method of a concept, simply by implementing a method
 The original paper that introduced the C3 algorithm (they built it for Dylan) can be found [here](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.19.3910&rep=rep1&type=pdf).
 
 The C3 is in MPS implemented in [AbstractC3StarMethodResolutionOrder.java](https://github.com/JetBrains/MPS/blob/master/core/aspects/behavior/behavior-api/source/jetbrains/mps/core/aspects/behaviour/AbstractC3StarMethodResolutionOrder.java). 
+
+Note that, in the MPS runtime, `SAbstractConcept` has a method `isAbstract` that returns true when the concept is declared as interface or abstract concept (source: `SConceptAdapterById`). In this sense, an interface _is_ an abstract concept.
